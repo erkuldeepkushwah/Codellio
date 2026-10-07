@@ -1,0 +1,53 @@
+name: Diagnose live site
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm i playwright@1.47.2 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+      - name: Render live site and report
+        run: |
+          cat > check.mjs <<'EOF'
+          import { chromium } from 'playwright'
+          const b = await chromium.launch()
+          const p = await b.newPage()
+          const errors = []
+          p.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text().slice(0,300)) })
+          p.on('pageerror', e => errors.push('PAGEERROR: ' + String(e).slice(0,300)))
+          await p.goto('https://erkuldeepkushwah.github.io/Codellio/', { waitUntil: 'load' })
+          await p.waitForTimeout(4000)
+          const info = await p.evaluate(() => {
+            const q = s => document.querySelector(s)
+            const vis = el => { if (!el) return 'MISSING'; const c = getComputedStyle(el); return 'display=' + c.display + ' vis=' + c.visibility + ' h=' + el.offsetHeight }
+            const root = q('#root')
+            const ul = q('#menu-main-menu')
+            return {
+              title: document.title,
+              bodyClass: (document.body.className||'').slice(0,160),
+              rootChildren: root ? root.children.length : 'NO_ROOT',
+              topBar: vis(q('#Top_bar')),
+              header: vis(q('#Header')),
+              menuNav: vis(q('#menu')),
+              menuUl: ul ? vis(ul) : 'MISSING',
+              menuUlHtml: ul ? ul.outerHTML.slice(0,300) : 'MISSING',
+              hamburger: vis(q('.responsive-menu-toggle')),
+              pageText: (document.body.innerText||'').replace(/\s+/g,' ').slice(0,200),
+            }
+          })
+          console.log('=== INFO ===')
+          console.log(JSON.stringify(info, null, 2))
+          console.log('=== ERRORS (' + errors.length + ') ===')
+          for (const e of errors.slice(0,12)) console.log(e)
+          await b.close()
+          EOF
+          node check.mjs
