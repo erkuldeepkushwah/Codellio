@@ -1,0 +1,7 @@
+{
+  "name": "Codellio",
+  "description": "Codellio - Professional Accounting, Tax, and Financial Advisory Services",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
