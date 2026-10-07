@@ -662,5 +662,45 @@ var e="script#wp-emoji-settings",t=document.querySelector(e);if(!(t instanceof H
 	</script>
 
 
+
+<!-- Codellio self-contained mobile menu -->
+<style>
+#cn-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .28s ease;z-index:99999}
+#cn-menu{position:fixed;top:0;right:0;bottom:0;width:280px;max-width:85%;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.15);transform:translateX(105%);transition:transform .28s ease;z-index:100000;display:flex;flex-direction:column}
+body.cn-open #cn-menu{transform:translateX(0)}
+body.cn-open #cn-backdrop{opacity:1;visibility:visible}
+body.cn-open{overflow:hidden}
+#cn-menu .cn-menu-close{display:block;text-align:right;padding:16px 20px;font-size:30px;line-height:1;color:#313133;text-decoration:none}
+#cn-menu nav{display:flex;flex-direction:column;padding:4px 0;overflow:auto}
+#cn-menu nav a{padding:16px 24px;font-size:18px;color:#313133;text-decoration:none;border-bottom:1px solid #f0f0f0}
+#cn-menu nav a:hover{color:#e62f43}
+</style>
+<div id="cn-menu" role="dialog" aria-label="Mobile menu">
+  <a href="#" class="cn-menu-close" aria-label="Close menu">&times;</a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About us</a>
+    <a href="service.html">Services</a>
+    <a href="faq.html">FAQ</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</div>
+<script>
+(function(){
+  var b=document.body;
+  function open(e){if(e){e.preventDefault();e.stopPropagation();}b.classList.add('cn-open');}
+  function close(e){if(e){e.preventDefault();}b.classList.remove('cn-open');}
+  document.addEventListener('click',function(e){
+    var t=e.target;
+    if(!t||!t.closest)return;
+    if(t.closest('.responsive-menu-toggle')){open(e);return;}
+    if(t.closest('#cn-menu .cn-menu-close')){close(e);return;}
+    if(t.id==='cn-backdrop'){close(e);return;}
+  },true);
+  var bd=document.createElement('div');bd.id='cn-backdrop';document.body.appendChild(bd);
+  var ss=document.getElementById('Side_slide');if(ss){ss.style.display='none';}
+})();
+</script>
+
 </body>
 </html>
