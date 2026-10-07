@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { createRoot } from 'react-dom/client'
+import { createPortal } from 'react-dom'
 
 // The main navigation, rendered with react-router-dom <Link> so clicking a
 // menu item changes the route client-side (no full page reload).
@@ -45,8 +45,10 @@ function toRouterPath(href) {
   return p
 }
 
-// Rendered *inside* the theme's existing <ul id="menu-main-menu"> so the
-// theme's menu styling keeps working, but the links are real <Link>s.
+// These <li> items are rendered through a portal into the theme's existing
+// <ul id="menu-main-menu">, so the theme's menu styling keeps working while
+// the links are real react-router <Link>s (the portal keeps them inside the
+// main React tree, which is what gives <Link> its Router context).
 function NavItems() {
   return (
     <>
@@ -64,6 +66,7 @@ function NavItems() {
 export default function ThemePage({ html, title, bodyClass, pageCss }) {
   const ref = useRef(null)
   const navigate = useNavigate()
+  const [menuEl, setMenuEl] = useState(null)
 
   useEffect(() => {
     if (title) document.title = title
@@ -90,15 +93,11 @@ export default function ThemePage({ html, title, bodyClass, pageCss }) {
     el.innerHTML = html
     runScripts(el)
 
-    // Mount the main menu as react-router <Link>s, reusing the theme's <ul>.
-    const roots = []
-    const mainUl = el.querySelector('#menu-main-menu')
-    if (mainUl) {
-      mainUl.innerHTML = ''
-      const root = createRoot(mainUl)
-      root.render(<NavItems />)
-      roots.push(root)
-    }
+    // Clear the theme's own menu items; the portal renders <Link> items into
+    // this same <ul> (keeping its id/class so the theme CSS still applies).
+    const ul = el.querySelector('#menu-main-menu')
+    if (ul) ul.innerHTML = ''
+    setMenuEl(ul || null)
 
     // Fallback for every other internal link (buttons like "Read More"):
     // intercept the click and navigate through the router instead of reloading.
@@ -115,9 +114,9 @@ export default function ThemePage({ html, title, bodyClass, pageCss }) {
     el.addEventListener('click', onClick)
     return () => {
       el.removeEventListener('click', onClick)
-      roots.forEach((r) => r.unmount())
+      setMenuEl(null)
     }
   }, [html, navigate])
 
-  return <div ref={ref} />
+  return <div ref={ref}>{menuEl ? createPortal(<NavItems />, menuEl) : null}</div>
 }
