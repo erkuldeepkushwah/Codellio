@@ -1,0 +1,8 @@
+{
+  "name": "Codellio",
+  "description": "A business landing page template.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "permissions": []
+}
