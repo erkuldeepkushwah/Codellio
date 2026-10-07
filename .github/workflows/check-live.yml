@@ -1,0 +1,26 @@
+name: Check live site
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch live pages and report panel references
+        run: |
+          echo "Checking live GitHub Pages content"
+          for p in index about contact faq service; do
+            url="https://erkuldeepkushwah.github.io/Codellio/${p}.html"
+            code=$(curl -s -o page.html -w "%{http_code}" "$url")
+            bn=$(grep -c 'Buy now' page.html || true)
+            se=$(grep -c '700+' page.html || true)
+            bd=$(grep -c 'be-demo' page.html || true)
+            dp=$(grep -c 'demo-panel' page.html || true)
+            sz=$(wc -c < page.html)
+            echo "PAGE ${p} http=${code} bytes=${sz} BuyNow=${bn} templates700=${se} be_demo=${bd} demo_panel=${dp}"
+          done
+          echo "=== ROOT ==="
+          code=$(curl -s -o root.html -w "%{http_code}" "https://erkuldeepkushwah.github.io/Codellio/")
+          echo "ROOT http=${code} bytes=$(wc -c < root.html) BuyNow=$(grep -c 'Buy now' root.html || true) templates700=$(grep -c '700+' root.html || true)"
+          echo "DONE"
